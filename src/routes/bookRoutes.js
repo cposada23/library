@@ -10,6 +10,13 @@ const BOOKS_COLLECTION = 'books';
 const bookRouter = express.Router();
 
 function router(nav) {
+  bookRouter.use((req, res, next) => {
+    if (req.user) {
+      next();
+    } else {
+      res.redirect('/');
+    }
+  });
 
   bookRouter.route('/').get((req, res) => {
     debug(chalk.green('Get all books'));
@@ -20,7 +27,7 @@ function router(nav) {
       try {
         client = await MongoClient.connect(MONGO_URI);
         const db = client.db(DB_NAME);
-        const collection = await db.collection(BOOKS_COLLECTION);
+        const collection = db.collection(BOOKS_COLLECTION);
         const bookList = await collection.find().toArray();
         debug(chalk.yellowBright(JSON.stringify(bookList)));
         res.render('bookListView', {
@@ -44,7 +51,7 @@ function router(nav) {
       try {
         client = await MongoClient.connect(MONGO_URI);
         const db = client.db(DB_NAME);
-        const collection = await db.collection(BOOKS_COLLECTION);
+        const collection = db.collection(BOOKS_COLLECTION);
         const book = await collection.findOne({ _id: ObjectID(id) });
         debug(chalk.yellowBright(JSON.stringify(book)));
         res.render('bookView', {
